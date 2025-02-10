@@ -607,7 +607,7 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
     })
     .on("mousemove touchmove", function(event) {
       const [mouseX] = d3.pointer(event, this);
-      const adjustedX = mouseX + margin.left;
+      const adjustedX = mouseX;
       const currentDate = currentX.invert(adjustedX);
       
       if (currentDate >= data[0].date && currentDate <= data[data.length - 1].date) {
