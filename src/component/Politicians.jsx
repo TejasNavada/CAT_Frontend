@@ -433,11 +433,11 @@ const Politicians = ({send}) => {
               </Zoom>
               
             </Grid>
-            <Grid size={8}>
+            {/* <Grid size={8}>
               <Zoom in={reload}>
                 <Item>size=8</Item>
               </Zoom>
-            </Grid>
+            </Grid> */}
             <Grid size={12}>
               <Zoom in={reload}>
                 <Item>
@@ -702,7 +702,7 @@ const Politicians = ({send}) => {
               </Zoom>
               
             </Grid>
-            <Grid size={4}>
+            {/* <Grid size={4}>
             <Zoom in={reload}>
               <Item>size=4</Item>
             </Zoom>
@@ -712,7 +712,7 @@ const Politicians = ({send}) => {
               <Zoom in={reload}>
                 <Item>size=8</Item>
               </Zoom>
-            </Grid>
+            </Grid> */}
           </Grid> 
           
           
