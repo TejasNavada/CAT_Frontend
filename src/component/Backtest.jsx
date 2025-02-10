@@ -147,6 +147,18 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
     .style("pointer-events", "none") // Prevent blocking mouse interactions
     .style("font-size", "12px");
 
+    const TransactionTooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("background", "white")
+    .style("border", "1px solid #ccc")
+    .style("padding", "5px")
+    .style("border-radius", "5px")
+    .style("visibility", "hidden")
+    .style("pointer-events", "none") // Prevent blocking mouse interactions
+    .style("font-size", "12px");
+
     // Create line and area generators
     const line = d3.line()
       .x(d => currentX(d.date))
@@ -221,7 +233,7 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
       StockTooltip.style("top", (event.pageY - 20) + "px")
           .style("left", (event.pageX + 10) + "px")
           .text(`${d.key}: $${stockValue.toLocaleString()}`); // Show stock name & value
-  })
+    })
     .on("mouseout", function () {
         StockTooltip.style("visibility", "hidden");
         d3.select(this).style("opacity", 1);
@@ -355,7 +367,7 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
       })
       .attr("y1", margin.top)
       .attr("y2", height - margin.bottom)
-      .attr("stroke", d => d.type === 'P' ? "#00ff00" : "#ff0000")
+      .attr("stroke", d => d.type === 'P'||d.type === 'Purchase' ? "#00ff00" : "#ff0000")
       .attr("stroke-width", 1)
       .attr("stroke-dasharray", "4 2");
 
@@ -376,7 +388,23 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
       .attr("text-anchor", "middle")
       .text(d => d.amount)
       .style("font-size", "10px")
-      .style("fill", "#ffffff");
+      .style("fill", "#ffffff")
+      .on("mouseover", function (event, d) {
+        TransactionTooltip.style("visibility", "visible")
+        d3.select(this).style("opacity", 0.8);
+      })
+      .on("mousemove", function (event, d) {
+        console.log(d,d.bioguideId.toLowerCase())
+
+        // Update tooltip text
+        TransactionTooltip.style("top", (event.pageY - 20) + "px")
+            .style("left", (event.pageX + 10) + "px")
+            .html("<div style=\"display:flex; align-items: center;\"><img   src=\"https://www.congress.gov/img/member/"+ d.bioguideId.toLowerCase()+"_200.jpg\" style=\"object-fit: cover; border-radius: 50%; height: 50px; width: 50px;\"></img><div style=\"margin-left: 10px;\"><div>"+d.firstName+" " + d.lastName+"</div><div>Transaction name: "+d.name+"</div><div>Description: "+d.description+"</div><div>Date: "+formatDate(d.date)+"</div><div>Type: "+d.type+"</div><div>Amount: "+d.amount+"</div></div></div>"); // Show stock name & value
+      })
+      .on("mouseout", function () {
+        TransactionTooltip.style("visibility", "hidden");
+          d3.select(this).style("opacity", 1);
+      });
 
         // Sort the labels by their x-coordinate (start time)
         const labelNodes = transactionGroup.selectAll(".transaction-label")

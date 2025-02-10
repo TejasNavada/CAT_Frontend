@@ -52,7 +52,7 @@ const Search1 = styled('div')(({ theme }) => ({
   }));
 
 const NavBar = () => {
-    const {setPage} = React.useContext(PageContext)
+    const {setPage,setPolitician} = React.useContext(PageContext)
 
 
 
@@ -87,7 +87,10 @@ const NavBar = () => {
                 variant="h6"
                 noWrap
                 component="div"
-                onClick={()=>setPage("Politicians")}
+                onClick={()=>{
+                  setPolitician(null)
+                  setPage("Politicians")
+                }}
             >
                 Politicians
             </Button>

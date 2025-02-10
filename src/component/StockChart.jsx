@@ -213,20 +213,33 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
     const focus = svg.append("g").attr("class", "focus").style("display", "none");
     focus.append("circle").attr("r", 6).attr("stroke", "#00ff00");
     
-    const rule = svg.append("line")
-      .attr("stroke", "black")
-      .attr("y1", margin.top)
-      .attr("y2", height - margin.bottom);
+    // const rule = svg.append("line")
+    //   .attr("stroke", "black")
+    //   .attr("y1", margin.top)
+    //   .attr("y2", height - margin.bottom);
 
     const tooltip = svg.append("g").style("display", "none");
 
-    const overlay = svg.append("rect")
-      .attr("class", "overlay")
-      .attr("width", innerWidth)
-      .attr("height", innerHeight)
-      .attr("transform", `translate(${margin.left},${margin.top})`)
-      .style("fill", "none")
-      .style("pointer-events", "all");
+    const TransactionTooltip = d3.select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("background", "white")
+        .style("border", "1px solid #ccc")
+        .style("padding", "5px")
+        .style("border-radius", "5px")
+        .style("visibility", "hidden")
+        .style("pointer-events", "none") // Prevent blocking mouse interactions
+        .style("font-size", "12px");
+    
+
+    // const overlay = svg.append("rect")
+    //   .attr("class", "overlay")
+    //   .attr("width", innerWidth)
+    //   .attr("height", innerHeight)
+    //   .attr("transform", `translate(${margin.left},${margin.top})`)
+    //   .style("fill", "none")
+    //   .style("pointer-events", "all");
 
       // Add transaction elements after chart creation
     const transactionGroup = svg.append("g").attr("class", "transactions");
@@ -257,9 +270,26 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
       })
       .attr("y1", margin.top)
       .attr("y2", height - margin.bottom)
-      .attr("stroke", d => d.type === 'P' ? "#00ff00" : "#ff0000")
+      .attr("stroke", d => d.type === 'P'||d.type === 'Purchase' ? "#00ff00" : "#ff0000")
       .attr("stroke-width", 1)
-      .attr("stroke-dasharray", "4 2");
+      .attr("stroke-dasharray", "4 2")
+      
+      .on("mouseover", function (event, d) {
+        TransactionTooltip.style("visibility", "visible")
+        d3.select(this).style("opacity", 0.8);
+      })
+      .on("mousemove", function (event, d) {
+        console.log(d,d.bioguideId.toLowerCase())
+
+        // Update tooltip text
+        TransactionTooltip.style("top", (event.pageY - 20) + "px")
+            .style("left", (event.pageX + 10) + "px")
+            .html("<div style=\"display:flex; align-items: center;\"><img   src=\"https://www.congress.gov/img/member/"+ d.bioguideId.toLowerCase()+"_200.jpg\" style=\"object-fit: cover; border-radius: 50%; height: 50px; width: 50px;\"></img><div style=\"margin-left: 10px;\"><div>"+d.firstName+" " + d.lastName+"</div><div>Transaction name: "+d.name+"</div><div>Description: "+d.description+"</div><div>Date: "+formatDate(d.date)+"</div><div>Type: "+d.type+"</div><div>Amount: "+d.amount+"</div></div></div>"); // Show stock name & value
+      })
+      .on("mouseout", function () {
+        TransactionTooltip.style("visibility", "hidden");
+          d3.select(this).style("opacity", 1);
+      });
 
       const Threshold = 110; // Define the threshold for proximity in the x-axis
       const verticalSpacing = 12; // Space between annotations when staggered
@@ -277,7 +307,23 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
       .attr("text-anchor", "middle")
       .text(d => d.amount)
       .style("font-size", "10px")
-      .style("fill", "#ffffff");
+      .style("fill", "#ffffff")
+      .on("mouseover", function (event, d) {
+        TransactionTooltip.style("visibility", "visible")
+        d3.select(this).style("opacity", 0.8);
+      })
+      .on("mousemove", function (event, d) {
+        console.log(d,d.bioguideId.toLowerCase())
+
+        // Update tooltip text
+        TransactionTooltip.style("top", (event.pageY - 20) + "px")
+            .style("left", (event.pageX + 10) + "px")
+            .html("<div style=\"display:flex; align-items: center;\"><img   src=\"https://www.congress.gov/img/member/"+ d.bioguideId.toLowerCase()+"_200.jpg\" style=\"object-fit: cover; border-radius: 50%; height: 50px; width: 50px;\"></img><div style=\"margin-left: 10px;\"><div>"+d.firstName+" " + d.lastName+"</div><div>Transaction name: "+d.name+"</div><div>Description: "+d.description+"</div><div>Type: "+d.type+"</div><div>Amount: "+d.amount+"</div></div></div>"); // Show stock name & value
+      })
+      .on("mouseout", function () {
+        TransactionTooltip.style("visibility", "hidden");
+          d3.select(this).style("opacity", 1);
+      });
 
         // Sort the labels by their x-coordinate (start time)
         const labelNodes = transactionGroup.selectAll(".transaction-label")
@@ -516,17 +562,17 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
       if (!d0 || !d1) return;
 
       const d = date - d0.date > d1.date - date ? d1 : d0;
-      
+      console.log(d)
       if (d?.date && d?.adjClose) {
         const xPos = currentX(d.date);
         const yPos = y(d.adjClose);
         
         focus.attr("transform", `translate(${xPos},${yPos})`);
-        rule.attr("transform", `translate(${xPos},0)`);
+        //rule.attr("transform", `translate(${xPos},0)`);
         
         // Update tooltip position
         tooltip.style("display", null)
-          .attr("transform", `translate(${xPos},${yPos})`);
+          .attr("transform", `translate(${xPos},${yPos-65})`);
 
         const path = tooltip.selectAll("path")
         .data([,])
@@ -551,7 +597,7 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
     }
 
     // Interaction handlers
-    overlay.on("mouseover", () => {
+    svg.on("mouseover", () => {
       focus.style("display", null);
       tooltip.style("display", null);
     })
@@ -572,7 +618,7 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
     function size(text, path) {
         const {x, y, width: w, height: h} = text.node().getBBox();
         text.attr("transform", `translate(${-w / 2},${15 - y})`);
-        path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
+        path.attr("d", `M${-w / 2 - 10},0h${w + 20}v${h + 20}H5l-5,5l-5,-5H${-w / 2 - 10}Z`);
     }
     function formatValue(value) {
         return value.toLocaleString("en", {

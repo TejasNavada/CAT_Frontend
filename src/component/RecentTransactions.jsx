@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTable, usePagination } from 'react-table';
 import {
     Table,
@@ -13,8 +13,11 @@ import {
     Typography,
 } from '@mui/material';
 import { getRecentTransactions } from '../service/transactionService';
+import { getPoliticianByBioGuide } from '../service/politicianService'
+import { PageContext } from '../context/PageContext';
 
 const RecentTransactions = () => {
+    const {setPolitician, setPage} = useContext(PageContext)
     const [data, setData] = useState([]);
     const [pageCount, setPageCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -35,12 +38,26 @@ const RecentTransactions = () => {
             {
                 Header: 'Politician',
                 accessor: 'bioguideId',
-                Cell: ({ value }) => (
-                    <img
-                        src={`https://www.congress.gov/img/member/${value.toLowerCase()}_200.jpg`}
-                        alt="Politician"
-                        height={50} width={50} style={{objectFit:"cover", borderRadius: '50%'}}
-                    />
+                Cell: ({ value, row }) => (
+                    <div style={{ minHeight: 50 }} onClick={() => {
+                        console.log(row)
+                        getPoliticianByBioGuide(row.original.bioguideId).then((res)=>{
+                            console.log(res)
+                            setPolitician(res)
+                            setPage("Politicians")
+                        })
+                        //setPolitician(row.original)
+                    }}>
+                        <img
+                            src={`https://www.congress.gov/img/member/${value.toLowerCase()}_200.jpg`}
+                            onError={event => {
+                                event.target.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                                event.onerror = null
+                            }}
+                            alt="Politician"
+                            height={50} width={50} style={{ objectFit: "cover", borderRadius: '50%' }}
+                        />
+                    </div>
                 ),
             },
             { Header: 'First Name', accessor: 'firstName' },
@@ -97,17 +114,17 @@ const RecentTransactions = () => {
 
     return (
         <div className="Politicians" style={{margin:"auto",width:"75vw"}}>
-            <Paper elevation={3} sx={{ padding: 2, marginTop: 3 }}>
+            <Paper elevation={3} sx={{ backgroundColor: "#333333",color:"#ffffff",padding: 2, marginTop: 3 }}>
                 <Typography variant="h6" gutterBottom>
                     Recent Transactions
                 </Typography>
-                <TableContainer>
+                <TableContainer sx={{color:"#ffffff"}} >
                     <Table {...getTableProps()}>
                         <TableHead>
                             {headerGroups.map(headerGroup => (
                                 <TableRow {...headerGroup.getHeaderGroupProps()}>
                                     {headerGroup.headers.map(column => (
-                                        <TableCell {...column.getHeaderProps()}>
+                                        <TableCell sx={{color:"#ffffff"}} {...column.getHeaderProps()}>
                                             {column.render('Header')}
                                         </TableCell>
                                     ))}
@@ -117,7 +134,7 @@ const RecentTransactions = () => {
                         <TableBody {...getTableBodyProps()}>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={columns.length} align="center">
+                                    <TableCell sx={{color:"#ffffff"}} colSpan={columns.length} align="center">
                                         <CircularProgress />
                                     </TableCell>
                                 </TableRow>
@@ -127,7 +144,7 @@ const RecentTransactions = () => {
                                     return (
                                         <TableRow {...row.getRowProps()}>
                                             {row.cells.map(cell => (
-                                                <TableCell {...cell.getCellProps()}>
+                                                <TableCell sx={{color:"#ffffff"}}  {...cell.getCellProps()}>
                                                     {cell.render('Cell')}
                                                 </TableCell>
                                             ))}
@@ -137,7 +154,7 @@ const RecentTransactions = () => {
                             )}
                             {!loading && page.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={columns.length} align="center">
+                                    <TableCell sx={{color:"#ffffff"}} colSpan={columns.length} align="center">
                                         No data available
                                     </TableCell>
                                 </TableRow>
@@ -147,7 +164,8 @@ const RecentTransactions = () => {
                 </TableContainer>
 
                 {/* Pagination */}
-                <TablePagination
+                <TablePagination 
+                    sx={{color:"#ffffff"}}
                     rowsPerPageOptions={[10, 20, 30, 50]}
                     component="div"
                     count={totalRows} // Total number of rows

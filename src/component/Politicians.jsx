@@ -35,6 +35,7 @@ import { getTransactionsByBioguideIdAndTicker, getTransactionsByBioguideIdAndTic
 import Backtest from './Backtest';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import PoliticiansTable from './PoliticiansTable';
 
 const uncheckedIcon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -53,6 +54,7 @@ const Politicians = ({send}) => {
   const [stock, setStock] = useState(null);
   const [backtestTickers, setBacktestTickers] = useState([]);
   const [backtestTrades, setBacktestTrades] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(()=>{
     setBacktestTickers([])
@@ -401,9 +403,13 @@ const Politicians = ({send}) => {
   return (
     <div className="Politicians" style={{marginTop:"10em",margin:"auto",width:"75vw"}}>
       {!politician && (
-        <div style={{paddingTop:"100px",margin:"auto", width:"33vw"}}>
+        <div>
+          <div style={{paddingTop:"100px",margin:"auto", width:"33vw"}}>
             <Search/>
+          </div>
+          <PoliticiansTable/>
         </div>
+        
       )}
       {politician && (
                
@@ -664,7 +670,10 @@ const Politicians = ({send}) => {
                         color='success'
                         variant='contained'
                         sx={{height:"4vh",marginY:"auto"}}
+                        loading={loading}
+                        loadingPosition="end"
                         onClick={()=>{
+                          setLoading(true)
                           getTransactionsByBioguideIdAndTickers(politician.bioguideId,backtestTickers.filter((option) => option !== "All")).then((response)=>{
                             console.log(response)
                             setBacktestTrades(response)
@@ -676,6 +685,7 @@ const Politicians = ({send}) => {
                               d.cash = +d.cash;
                             });
                             setBacktest(response)
+                            setLoading(false)
                           })
                         }}
                         >Go</Button>
