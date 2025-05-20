@@ -16,7 +16,10 @@ const Home = React.memo(() => {
                 <Politicians/>
             )}
             {page == "Transactions"&&(
-                <RecentTransactions/>
+                <div style={{marginTop:"10em",margin:"auto",width:"80vw"}}>
+                    
+                    <RecentTransactions/>
+                </div>
             )}
 
             {page == "Stocks"&&(

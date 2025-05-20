@@ -11,6 +11,8 @@ import {
     Paper,
     CircularProgress,
     Typography,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import { getRecentTransactions } from '../service/transactionService';
 import { getPoliticianByBioGuide } from '../service/politicianService'
@@ -22,6 +24,11 @@ const RecentTransactions = () => {
     const [pageCount, setPageCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [totalRows, setTotalRows] = useState(0);
+    const theme = useTheme();
+    const isXl = useMediaQuery('(min-width:1596px)');
+    const isLg = useMediaQuery('(min-width:860px) and (max-width:1595px)');
+    const isMd = useMediaQuery('(min-width:576px) and (max-width:860px)');
+    const isSm = useMediaQuery('(max-width:575px)');
 
     const fetchData = async (pageIndex, pageSize) => {
         setLoading(true);
@@ -33,7 +40,7 @@ const RecentTransactions = () => {
         setLoading(false);
     };
 
-    const columns = React.useMemo(
+    const allColumns = React.useMemo(
         () => [
             {
                 Header: 'Politician',
@@ -49,30 +56,63 @@ const RecentTransactions = () => {
                         //setPolitician(row.original)
                     }}>
                         <img
-                            src={`https://www.congress.gov/img/member/${value.toLowerCase()}_200.jpg`}
+                            src={`https://www.congress.gov/img/member/${value?.toLowerCase()}_200.jpg`}
                             onError={event => {
                                 event.target.src = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
                                 event.onerror = null
                             }}
                             alt="Politician"
-                            height={50} width={50} style={{ objectFit: "cover", borderRadius: '50%' }}
+                            height={50} width={50} style={{ objectFit: "cover", borderRadius: '50%', margin: "auto", display: isSm||isMd?"block":""}}
                         />
+                        {(isMd||isSm) &&(
+                            <div style={{textAlign:"center"}}>{row.original.firstName+" "+row.original.lastName.charAt(0)+"."}</div>
+                        )}
                     </div>
+                    
                 ),
+                width: isXl ? 80 : isLg ? 60 : 60,
             },
-            { Header: 'First Name', accessor: 'firstName' },
-            { Header: 'Last Name', accessor: 'lastName' },
-            { Header: 'Transaction ID', accessor: 'transactionId' },
-            { Header: 'Name', accessor: 'name' },
-            { Header: 'Type', accessor: 'type' },
+            { Header: 'First Name', accessor: 'firstName',width: isXl ? 100 : isLg ? 60 : 60, },
+            { Header: 'Last Name', accessor: 'lastName',width: isXl ? 100 : isLg ? 60 : 60, },
+            { Header: 'Transaction ID', accessor: 'transactionId',width: isXl ? 100 : isLg ? 80 : 60, },
+            { Header: 'Name', accessor: 'name',Cell: ({ value }) => ( <Typography sx={{fontSize:isXl ? 14 : isLg ? 14 : isMd ? 14 : 10}}>{value}</Typography>),width: isXl ? 200 : isLg ? 160 : 80, },
+            { Header: 'Type', accessor: 'type',Cell: ({ value }) => ( <Typography sx={{fontSize:isXl ? 14 : isLg ? 14 : isMd ? 14 : 10}}>{value}</Typography>),width:isXl ? 50 : isLg ? 30 : 30, },
             //{ Header: 'Owner', accessor: 'owner' },
-            { Header: 'Date', accessor: 'date' },
-            { Header: 'Asset Type', accessor: 'assetType' },
-            { Header: 'Description', accessor: 'description' },
-            { Header: 'Amount', accessor: 'amount' },
+            { Header: 'Date', accessor: 'date', width: isXl ? 100 : isLg ? 60 : 60, },
+            { Header: 'Asset Type', accessor: 'assetType', width: isXl ? 80 : isLg ? 60 : 40,  },
+            { Header: 'Description', accessor: 'description',width: isXl ? 200 : isLg ? 160 : 120, },
+            { Header: 'Amount', accessor: 'amount',Cell: ({ value }) => ( <Typography sx={{fontSize:isXl ? 14 : isLg ? 14 : isMd ? 14 : 10}}>{value}</Typography>),width: isXl ? 200 : isLg ? 100 : 50, },
         ],
-        []
+        [isXl, isLg, isMd, isSm]
     );
+
+    const columns = React.useMemo(() => {
+            if (isXl) {
+                return allColumns
+            }
+            if(isLg){
+                return allColumns.filter(col =>
+                    // keep only these high-priority accessors when small:
+                    ["bioguideId","firstName","lastName", 'name','type','date',"amount"]
+                    .includes(col.accessor)
+                    );
+            }
+            if(isMd){
+                return allColumns.filter(col =>
+                    // keep only these high-priority accessors when small:
+                    ["bioguideId", 'name','type','date',"amount"]
+                    .includes(col.accessor)
+                    );
+            }
+            if(isSm){
+                return allColumns.filter(col =>
+                    // keep only these high-priority accessors when small:
+                    ["bioguideId", 'name','type',"amount"]
+                    .includes(col.accessor)
+                    );
+            }
+            return allColumns
+        }, [isXl, isLg, isMd, allColumns]);
     
 
     const {
@@ -113,18 +153,30 @@ const RecentTransactions = () => {
     };
 
     return (
-        <div className="Politicians" style={{margin:"auto",width:"75vw"}}>
+        <div className="Politicians" style={{margin:"auto",width:"100%", overflowX: "hidden"}}>
             <Paper elevation={3} sx={{ backgroundColor: "#333333",color:"#ffffff",padding: 2, marginTop: 3 }}>
                 <Typography variant="h6" gutterBottom>
                     Recent Transactions
                 </Typography>
                 <TableContainer sx={{color:"#ffffff"}} >
-                    <Table {...getTableProps()}>
+                    <Table {...getTableProps()}
+                    sx={{
+                           width: "100%",
+                           tableLayout: "fixed",    // ← force equal column widths
+                           
+                         }}>
                         <TableHead>
                             {headerGroups.map(headerGroup => (
                                 <TableRow {...headerGroup.getHeaderGroupProps()}>
                                     {headerGroup.headers.map(column => (
-                                        <TableCell sx={{color:"#ffffff"}} {...column.getHeaderProps()}>
+                                        <TableCell sx={{color:"#ffffff"}} {...column.getHeaderProps({
+                                            style:{
+                                                width: column.width,       // px from your column definition
+                                                minWidth: column.minWidth,
+                                                maxWidth: column.maxWidth,
+                                                paddingInline:0
+                                            }
+                                        })}>
                                             {column.render('Header')}
                                         </TableCell>
                                     ))}
@@ -142,9 +194,25 @@ const RecentTransactions = () => {
                                 page.map(row => {
                                     prepareRow(row);
                                     return (
-                                        <TableRow {...row.getRowProps()}>
+                                        <TableRow style={{cursor:"pointer"}}{...row.getRowProps()}>
                                             {row.cells.map(cell => (
-                                                <TableCell sx={{color:"#ffffff"}}  {...cell.getCellProps()}>
+                                                <TableCell 
+                                                    onClick={() => {
+                                                        getPoliticianByBioGuide(row.original.bioguideId).then((res)=>{
+                                                            console.log(res)
+                                                            setPolitician(res)
+                                                            setPage("Politicians")
+                                                        })
+                                                    }}
+                                                    sx={{color:"#ffffff"}}  
+                                                    {...cell.getCellProps({
+                                                        style:{
+                                                        width: cell.column.width,       // px from your column definition
+                                                        minWidth: cell.column.minWidth,
+                                                        maxWidth: cell.column.maxWidth,
+                                                        paddingInline:0
+                                                    }
+                                                    })}>
                                                     {cell.render('Cell')}
                                                 </TableCell>
                                             ))}

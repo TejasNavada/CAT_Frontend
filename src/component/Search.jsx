@@ -240,7 +240,6 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
               }}
 
         getOptionLabel={(option) => option.firstName + " " + option.lastName}
-        sx={{ paddingLeft: "3em" ,}}
         renderOption={(props, option, { inputValue }) => {
           const { key, ...optionProps } = props;
           const matches = match(option.lastName + ", " + option.firstName, inputValue, { insideWords: true });

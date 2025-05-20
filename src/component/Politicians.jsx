@@ -55,6 +55,8 @@ const Politicians = ({send}) => {
   const [backtestTickers, setBacktestTickers] = useState([]);
   const [backtestTrades, setBacktestTrades] = useState([])
   const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const scrollOffsetRef = React.useRef(0);
 
   useEffect(()=>{
     setBacktestTickers([])
@@ -67,26 +69,26 @@ const Politicians = ({send}) => {
 
   useEffect(() => {
     console.log("Component Re-rendered");
+    console.log(backtestTickers)
   });
   
-      useEffect(()=>{
-          if(stock){
-              getStockHistory(stock).then((response)=>{
-                response.forEach((d, i) => {
-                  d.date = new Date(parseDate(d.date).getTime());
-                  d.adjClose = +d.adjClose;
-                });
-                console.log(response)
-                setStockHistory(response)
-                
-              })
-              getTransactionsByBioguideIdAndTicker(politician.bioguideId,stock).then((response)=>{
-                console.log(response)
-                setStockTrades(response)
-              })
-
-          }
-      },[stock])
+  useEffect(()=>{
+    if(stock){
+      getStockHistory(stock).then((response)=>{
+        response.forEach((d, i) => {
+          d.date = new Date(parseDate(d.date).getTime());
+          d.adjClose = +d.adjClose;
+        });
+        console.log(response)
+        setStockHistory(response)
+        
+      })
+      getTransactionsByBioguideIdAndTicker(politician.bioguideId,stock).then((response)=>{
+        console.log(response)
+        setStockTrades(response)
+      })
+    }
+  },[stock])
 
   const assetCodes = {
     "4K": "401K and Other Non-Federal Retirement Accounts",
@@ -259,6 +261,7 @@ const Politicians = ({send}) => {
             checkedIcon={checkedIcon}
             style={{ marginRight: 8 }}
             checked={selected}
+            onClick={(e) => e.stopPropagation()} 
           />
         )}
         {option!="All" && (
@@ -359,6 +362,11 @@ const Politicians = ({send}) => {
             itemSize={(index) => getChildSize(itemData[index])}
             overscanCount={5}
             itemCount={itemCount}
+            onScroll={(props)=>{
+              scrollOffsetRef.current = props.scrollOffset
+            }}
+            initialScrollOffset={scrollOffsetRef.current}
+            
             
           >
             {renderRow}
@@ -401,10 +409,10 @@ const Politicians = ({send}) => {
         </Paper>
       );
   return (
-    <div className="Politicians" style={{marginTop:"10em",margin:"auto",width:"75vw"}}>
+    <div className="Politicians" style={{marginTop:"10em",margin:"auto",width:"80vw"}}>
       {!politician && (
         <div>
-          <div style={{paddingTop:"100px",margin:"auto", width:"33vw"}}>
+          <div style={{paddingTop:"100px",margin:"auto", width:"33vw", minWidth:200}}>
             <Search/>
           </div>
           <PoliticiansTable/>
@@ -607,6 +615,7 @@ const Politicians = ({send}) => {
                           clearOnBlur={false}
                           disableCloseOnSelect = {true}
                           value = {backtestTickers}
+                          //onFocus={}
                           onChange={(event, newValue, reason) => {
                             console.log(reason)
                             console.log(event)
@@ -631,8 +640,9 @@ const Politicians = ({send}) => {
                                 setBacktestTickers([])
                               }
                               // If "All" is not selected and all other options are selected, add "All"
-                              else if (newValue.length === politicianStocks.length - 1) {
+                              else if (newValue.length === politicianStocks.length) {
                                 setBacktestTickers(["All", ...politicianStocks]);
+                                console.log(newValue.length === politicianStocks.length - 1)
                               } else {
                                 setBacktestTickers(newValue);
                               }
@@ -652,7 +662,10 @@ const Politicians = ({send}) => {
                             <StyledInput
                               ref={params.InputProps.ref}
                               inputProps={params.inputProps}
-                              autoFocus
+                              autoFocus={open}
+                              open={open}
+                              onFocus={() => setOpen(true)}
+                              onBlur={() => setOpen(false)}
                               placeholder="Search"
                               startAdornment={<SearchIcon sx={{paddingRight:"1vw"}}/>}
                             />
@@ -665,11 +678,19 @@ const Politicians = ({send}) => {
                               component: ListboxComponent,
                             },
                           }}
+                          openOnFocus
+                          // onOpen={() => setOpen(true)}
+                          // onClose={(event, reason) => {
+                          //   if (reason !== 'select-option') {
+                          //     setOpen(false);
+                          //   }
+                          // }}
                         />
                         <Button
                         color='success'
                         variant='contained'
                         sx={{height:"4vh",marginY:"auto"}}
+                        disabled={open}
                         loading={loading}
                         loadingPosition="end"
                         onClick={()=>{

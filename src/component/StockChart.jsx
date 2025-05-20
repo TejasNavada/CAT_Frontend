@@ -176,6 +176,8 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(currentX).ticks(width / 80));
 
+      
+
     const yAxis = g => g
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(y).ticks(height / 40))
@@ -412,6 +414,14 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
 
       function zoomed(event) {
         currentX = event.transform.rescaleX(x);
+        const [minDate, maxDate] = currentX.domain();
+        const visible = data.filter(d => d.date >= minDate && d.date <= maxDate);
+        const maxVisibleTotal = d3.max(visible, d => d.adjClose);
+        y.domain([0, maxVisibleTotal]);
+        svg.select(".y-axis")   // give your left axis a class when you append it
+          .transition()        // optional smooth transition
+          .duration(100)
+          .call(d3.axisLeft(y).ticks(height / 40));
       
         // Update chart elements (line and area)
         chart.select(".area").attr("d", area);

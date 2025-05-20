@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
-import { data } from 'react-router-dom';
 
 
 class IndexedPriorityQueue {
@@ -104,9 +103,10 @@ class IndexedPriorityQueue {
 
 const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) => {
   const svgRef = useRef(null);
-  const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+  const margin = { top: 20, right: 30, bottom: 30, left: 70 };
   const width = 1500;
   const height = 500;
+  const transitionDuration = 300;
 
   useEffect(() => {
     console.log(portfolio)
@@ -304,17 +304,32 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
 
       
     // Add axes
-    const xAxis = g => g
-    .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(currentX).ticks(width / 80));
+    const xAxisGroup = svg.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(currentX).ticks(width / 80));
 
-    const yAxis = g => g
-    .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y).ticks(height / 40))
-    .call(g => g.select(".domain").remove());
+    xAxisGroup.selectAll("text")
+      .style("fill", "white"); // Style for labels
 
-    svg.append("g").call(xAxis);
-    svg.append("g").call(yAxis);
+    xAxisGroup.selectAll("line")
+      .style("stroke", "white"); // Style for tick lines
+
+    xAxisGroup.select(".domain") // The main axis line
+      .style("stroke", "white");
+    
+      
+    const yAxisGroup = svg.append("g")
+      .attr("class", "y-axis")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y).ticks(height / 40))
+      //.call(g => g.select(".domain").remove()); // You are removing the domain line here
+    yAxisGroup.selectAll("text")
+      .style("fill", "white"); // Style for labels
+
+    yAxisGroup.selectAll("line")
+      .style("stroke", "white"); // Style for tick lines
+    yAxisGroup.select(".domain").style("stroke", "white");
 
     // Zoom functionality
     const zoom = d3.zoom()
@@ -325,8 +340,8 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
     svg.call(zoom);
 
     // Interaction elements
-    const focus = svg.append("g").attr("class", "focus").style("display", "none");
-    focus.append("circle").attr("r", 6).attr("stroke", "#00ff00");
+    //const focus = svg.append("g").attr("class", "focus").style("display", "none");
+    //focus.append("circle").attr("r", 6).attr("stroke", "#00ff00");
     
     // const rule = svg.append("line")
     //   .attr("stroke", "black")
@@ -492,6 +507,14 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
 
       function zoomed(event) {
         currentX = event.transform.rescaleX(x);
+        const [minDate, maxDate] = currentX.domain();
+        const visible = portfolio.filter(d => d.date >= minDate && d.date <= maxDate);
+        const maxVisibleTotal = d3.max(visible, d => d.total);
+        y.domain([0, maxVisibleTotal]);
+        svg.select(".y-axis")   // give your left axis a class when you append it
+          .transition()        // optional smooth transition
+          .duration(transitionDuration)
+          .call(d3.axisLeft(y).ticks(height / 40));
       
         // Update chart elements (line and area)
         chart.select(".areaCash").attr("d", areaCash);
@@ -524,8 +547,18 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
         //       );
         // });
         chart.select(".line").attr("d", line);
-        svg.select(".x-axis").call(d3.axisBottom(currentX).ticks(width / 80));
-      
+        xAxisGroup
+          .transition()        // optional smooth transition
+          .duration(transitionDuration)
+          .call(d3.axisBottom(currentX).ticks(width / 80));
+        xAxisGroup.selectAll("text").style("fill", "white");
+        xAxisGroup.selectAll("line").style("stroke", "white");
+        xAxisGroup.select(".domain").style("stroke", "white");
+
+        yAxisGroup.selectAll("text").style("fill", "white");
+        yAxisGroup.selectAll("line").style("stroke", "white");
+        yAxisGroup.select(".domain").style("stroke", "white");
+              
         // Update transaction positions with offset logic (transaction lines)
         transactionGroup.selectAll(".transaction-line")
           .attr("x1", d => {
@@ -675,12 +708,12 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
         const xPos = currentX(d.date);
         const yPos = y(d.total);
         
-        focus.attr("transform", `translate(${xPos},${yPos})`);
+        //focus.attr("transform", `translate(${xPos},${yPos})`);
         //rule.attr("transform", `translate(${xPos},0)`);
         
         // Update tooltip position
         tooltip.style("display", null)
-          .attr("transform", `translate(${xPos},${yPos-55})`);
+          .attr("transform", `translate(${xPos},${yPos-58})`);
 
         const path = tooltip.selectAll("path")
         .data([,])
@@ -706,11 +739,11 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
 
     // Interaction handlers
     svg.on("mouseover", () => {
-      focus.style("display", null);
+      //focus.style("display", null);
       tooltip.style("display", null);
     })
     .on("mouseout", () => {
-      focus.style("display", "none");
+      //focus.style("display", "none");
       tooltip.style("display", "none");
     })
     .on("mousemove touchmove", function(event) {

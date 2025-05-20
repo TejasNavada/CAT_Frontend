@@ -34,12 +34,14 @@ export const getTransactionsByBioguideIdAndTicker = async (bioguideId,ticker) =>
 	
 }
 export const getTransactionsByBioguideIdAndTickers = async (bioguideId,tickers) => {
+    console.log(bioguideId, tickers)
     if(tickers == null|| tickers == [] ){
         return [];
     }
 	
     try {
         let response = await axios.post(transactionUrl +"/stocks/"+bioguideId,tickers)
+        console.log(response)
         return response.data
     } catch (error) {
         console.log(error)
