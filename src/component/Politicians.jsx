@@ -413,7 +413,7 @@ const Politicians = ({send}) => {
       {!politician && (
         <div>
           <div style={{paddingTop:"100px",margin:"auto", width:"33vw", minWidth:200}}>
-            <Search/>
+            <Search type={"politiciansTable"}/>
           </div>
           <PoliticiansTable/>
         </div>

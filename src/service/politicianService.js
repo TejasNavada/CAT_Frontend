@@ -25,10 +25,17 @@ export const getPoliticianByBioGuide = async (bioguide) => {
 
 
 
-export const getPoliticiansBacktest = async (pageIndex, pageSize,sort="backtestAllTime") => {
-	
+export const getPoliticiansBacktest = async (pageIndex, pageSize,sort="backtestAllTime", contains = "") => {
+	console.log(contains)
     try {
-        let response = await axios.get(politicanUrl +"/backtest?page="+pageIndex+"&size="+pageSize+"&sortBy="+sort)
+        let response = await axios.get(politicanUrl +"/backtest", {
+            params: {
+                page: pageIndex,
+                size: pageSize,
+                sortBy: sort,
+                contains: contains,
+            },
+        })
         return response.data
     } catch (error) {
         console.log(error)

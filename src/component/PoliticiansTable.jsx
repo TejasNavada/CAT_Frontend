@@ -24,7 +24,7 @@ import { getPoliticiansBacktest } from '../service/politicianService';
 import { PageContext } from '../context/PageContext';
 
 const PoliticiansTable = () => {
-    const {politician, setPolitician } = useContext(PageContext)
+    const {politician, setPolitician, filterContext, setFilterContext } = useContext(PageContext)
     const [data, setData] = useState([]);
     const [pageCount, setPageCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -38,9 +38,9 @@ const PoliticiansTable = () => {
     console.log(isXl,isLg,isMd,isSm)
 
 
-    const fetchData = async (pageIndex, pageSize, period) => {
+    const fetchData = async (pageIndex, pageSize, period, contains) => {
         setLoading(true);
-        const response = await getPoliticiansBacktest(pageIndex, pageSize, period);
+        const response = await getPoliticiansBacktest(pageIndex, pageSize, period, contains);
         console.log(response);
         setData(response.content);
         setPageCount(response.totalPages);
@@ -249,23 +249,23 @@ const PoliticiansTable = () => {
 
     // Fetch data when pageIndex or pageSize changes
     useEffect(() => {
-        fetchData(pageIndex, pageSize);
-    }, [pageIndex, pageSize]);
+        fetchData(pageIndex, pageSize,selectedBacktestPeriod,filterContext);
+    }, [pageIndex, pageSize,filterContext]);
 
     const handlePageChange = (event, newPage) => {
         gotoPage(newPage); // Update react-table's state
-        fetchData(newPage, pageSize, selectedBacktestPeriod); // Fetch new data
+        fetchData(newPage, pageSize, selectedBacktestPeriod,filterContext); // Fetch new data
     };
 
     const handleRowsPerPageChange = event => {
         const newPageSize = Number(event.target.value);
         setPageSize(newPageSize); // Update react-table's state
         gotoPage(0); // Reset to the first page
-        fetchData(0, newPageSize, selectedBacktestPeriod); // Fetch new data for the updated page size
+        fetchData(0, newPageSize, selectedBacktestPeriod, filterContext); // Fetch new data for the updated page size
     };
     const handleBacktestPeriodChange = (event) => {
         setSelectedBacktestPeriod(event.target.value); // Update selected period
-        fetchData(pageIndex, pageSize, event.target.value); // Fetch data for the selected period
+        fetchData(pageIndex, pageSize, event.target.value, filterContext); // Fetch data for the selected period
     };
 
     return (

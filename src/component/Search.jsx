@@ -208,10 +208,10 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
     },
   });
   
-  const Search = (list,type) => {
+  const Search = ({list,type}) => {
     const[filter, setFilter] = useState("")
     const[politicians,setPoliticians] = useState([])
-    const {politician, setPolitician} = useContext(PageContext)
+    const {politician, setPolitician, filterContext, setFilterContext} = useContext(PageContext)
     const[filteredPoliticians, setFilteredPoliticians] = useState([])
 
     useEffect(()=>{
@@ -220,6 +220,12 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
         setPoliticians(poli)
       })
     }, [])
+
+    useEffect(()=>{
+      if(type == "politiciansTable"){
+        setFilterContext(filter)
+      }
+    }, [type,filter])
     
 
     return (
@@ -227,6 +233,15 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
         disableListWrap
         options={politicians}
         autoHighlight
+        freeSolo
+        inputValue={filter}              // 4) drive the input text
+        onInputChange={(e, newText, reason) => {
+          // we only want to respond to typing,
+          // not option-selection events
+          if (reason === 'input') {
+            setFilter(newText);
+          }
+        }}
         value={politician}
               onChange={(event, newValue, reason) => {
                 if (

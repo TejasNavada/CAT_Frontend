@@ -106,6 +106,7 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
   const margin = { top: 20, right: 30, bottom: 30, left: 40 };
   const width = 1500;
   const height = 500;
+  const transitionDuration = 300;
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -158,7 +159,7 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
     // Add area
     chart.append("path")
       .datum(data)
-      .attr("class", "area")
+      .attr("class", "area stockchart-area") // Added specific class
       .attr("d", area)
       .style("fill", "url(#gradient)");
 
@@ -172,36 +173,74 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
       .attr("stroke-width", 1.5);
 
     // Add axes
-    const xAxis = g => g
+    const xAxisGroup = svg.append("g")
+      .attr("class", "x-axis")
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .call(d3.axisBottom(currentX).ticks(width / 80));
+    
+    xAxisGroup.selectAll("text")
+      .style("fill", "white"); // Style for labels
+
+    xAxisGroup.selectAll("line")
+      .style("stroke", "white"); // Style for tick lines
+
+    xAxisGroup.select(".domain") // The main axis line
+      .style("stroke", "white");
 
       
 
-    const yAxis = g => g
+    const yAxisGroup = svg.append("g")
+      .attr("class", "y-axis")
       .attr("transform", `translate(${margin.left},0)`)
       .call(d3.axisLeft(y).ticks(height / 40))
-      .call(g => g.select(".domain").remove());
+      //.call(g => g.select(".domain").remove()); // You are removing the domain line here
+    yAxisGroup.selectAll("text")
+      .style("fill", "white"); // Style for labels
 
-    svg.append("g").call(xAxis);
-    svg.append("g").call(yAxis);
+    yAxisGroup.selectAll("line")
+      .style("stroke", "white"); // Style for tick lines
+    yAxisGroup.select(".domain").style("stroke", "white");
+
+    const initialYMaxForGradient = d3.max(data, d => d.adjClose) || 0;
+    const initialYMinForGradient = 0; // Assuming y-domain always starts at 0 for this chart
 
     // Add gradient
-    const gradient = svg.append("defs")
+    svg.append("defs")
       .append("linearGradient")
       .attr("id", "gradient")
-      .attr("x1", "0%").attr("y1", "50%")
-      .attr("x2", "0%").attr("y2", "100%");
+      .attr("gradientUnits", "userSpaceOnUse") // Key change: use user space coordinates
+      .attr("x1", "0%") // Gradient is vertical
+      .attr("y1", y(initialYMaxForGradient)) // Top of gradient in user space (maps to max value)
+      .attr("x2", "0%")
+      .attr("y2", y(initialYMinForGradient)) // Bottom of gradient in user space (maps to min value, e.g., 0)
+      .selectAll("stop")
+      .data([
+          { offset: "0%", color: "#304040", opacity: 0.7 }, // Color at y1 (top of data)
+          { offset: "100%", color: "#333333", opacity: 0.1 } // Color at y2 (bottom of data, e.g., 0 line)
+      ])
+      .enter().append("stop")
+      .attr("offset", d_stop => d_stop.offset)
+      .style("stop-color", d_stop => d_stop.color)
+      .style("stop-opacity", d_stop => d_stop.opacity);
 
-    gradient.append("stop")
-      .attr("offset", "0%")
-      .style("stop-color", "#304040")
-      .style("stop-opacity", 1);
+    // gradient.append("stop")
+    //   .attr("offset", "0%")
+    //   .style("stop-color", "#304040")
+    //   .style("stop-opacity", 1);
 
-    gradient.append("stop")
-      .attr("offset", "100%")
-      .style("stop-color", "#333333")
-      .style("stop-opacity", 0);
+    // gradient.append("stop")
+    //   .attr("offset", "100%")
+    //   .style("stop-color", "#333333")
+    //   .style("stop-opacity", 0);
+    // gradient.append("stop")
+    //   .attr("offset", "0%")
+    //   .style("stop-color", "#304040") // Darker, more opaque at the top
+    //   .style("stop-opacity", 0.7); // Slightly adjusted opacity
+
+    // gradient.append("stop")
+    //   .attr("offset", "100%")
+    //   .style("stop-color", "#333333") // Lighter, less opaque at the bottom
+    //   .style("stop-opacity", 0.1); // Slightly adjusted opacity for a softer fade
 
     // Zoom functionality
     const zoom = d3.zoom()
@@ -417,16 +456,35 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
         const [minDate, maxDate] = currentX.domain();
         const visible = data.filter(d => d.date >= minDate && d.date <= maxDate);
         const maxVisibleTotal = d3.max(visible, d => d.adjClose);
-        y.domain([0, maxVisibleTotal]);
+
+        // Update gradient coordinates based on the new y-domain
+        const currentVisibleYMax = y.domain()[1]; // Get max from the scale's current domain
+        const currentVisibleYMin = 0; // Get min from the scale's current domain (should be 0)
+
+        svg.select("#stockchart-gradient")
+          .attr("y1", y(currentVisibleYMax)) // y-coordinate for the top of the current y-domain
+          .attr("y2", y(currentVisibleYMin));    // y-coordinate for the bottom of the current y-domain (0 line)
+        
+          y.domain([0, maxVisibleTotal]);
         svg.select(".y-axis")   // give your left axis a class when you append it
           .transition()        // optional smooth transition
-          .duration(100)
+          .duration(transitionDuration)
           .call(d3.axisLeft(y).ticks(height / 40));
       
         // Update chart elements (line and area)
         chart.select(".area").attr("d", area);
         chart.select(".line").attr("d", line);
-        svg.select(".x-axis").call(d3.axisBottom(currentX).ticks(width / 80));
+        xAxisGroup
+          .transition()        // optional smooth transition
+          .duration(transitionDuration)
+          .call(d3.axisBottom(currentX).ticks(width / 80));
+        xAxisGroup.selectAll("text").style("fill", "white");
+        xAxisGroup.selectAll("line").style("stroke", "white");
+        xAxisGroup.select(".domain").style("stroke", "white");
+
+        yAxisGroup.selectAll("text").style("fill", "white");
+        yAxisGroup.selectAll("line").style("stroke", "white");
+        yAxisGroup.select(".domain").style("stroke", "white");
       
         // Update transaction positions with offset logic (transaction lines)
         transactionGroup.selectAll(".transaction-line")

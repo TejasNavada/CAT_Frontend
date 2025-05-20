@@ -232,7 +232,7 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
       // Update tooltip text
       StockTooltip.style("top", (event.pageY - 20) + "px")
           .style("left", (event.pageX + 10) + "px")
-          .text(`${d.key}: $${stockValue.toLocaleString()}`); // Show stock name & value
+          .text(`${d.key}: $${stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`); // Show stock name & value
     })
     .on("mouseout", function () {
         StockTooltip.style("visibility", "hidden");
@@ -280,7 +280,7 @@ const Backtest = ({ portfolio, transactions, startHeight,efficientOrPretty }) =>
         // Update tooltip text
         StockTooltip.style("top", (event.pageY - 20) + "px")
             .style("left", (event.pageX + 10) + "px")
-            .text(`Cash: $${d.cash.toLocaleString()}`); // Format cash amount
+            .text(`Cash: $${d.cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`); // Format cash amount
       })
       .on("mouseout", function () {
           StockTooltip.style("visibility", "hidden");

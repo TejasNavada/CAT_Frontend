@@ -17,6 +17,8 @@ export const PageProvider = ({ children}) => {
     const [value, setValue] = React.useState('Assets');
     const [slide, setSlide] = React.useState(false);
     const [backtestTickers, setBacktestTickers] = useState([]);
+    const [filterContext,setFilterContext] = useState("")
+
     useEffect(()=>{
         setReload(false)
         if(politician){
@@ -46,7 +48,7 @@ export const PageProvider = ({ children}) => {
       },[value])
 
     return (
-        <PageContext.Provider value={{ page,setPage,politician,setPolitician,reload, setReload, value, setValue, slide, setSlide,assets,setAssets,transactions,setTransactions,stocks,setStocks, politicianStocks,setPoliticianStocks,backtestTickers, setBacktestTickers }}>
+        <PageContext.Provider value={{ page,setPage,politician,setPolitician,reload, setReload, value, setValue, slide, setSlide,assets,setAssets,transactions,setTransactions,stocks,setStocks, politicianStocks,setPoliticianStocks,backtestTickers, setBacktestTickers, filterContext, setFilterContext }}>
             {children}
         </PageContext.Provider>
     );
