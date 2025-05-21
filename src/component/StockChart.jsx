@@ -103,7 +103,7 @@ class IndexedPriorityQueue {
 
 const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
   const svgRef = useRef(null);
-  const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+  const margin = { top: 20, right: 0, bottom: 30, left: 70 };
   const width = 1500;
   const height = 500;
   const transitionDuration = 300;
