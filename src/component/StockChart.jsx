@@ -283,7 +283,7 @@ const StockChart = ({ data, transactions, startHeight,efficientOrPretty }) => {
     //   .style("pointer-events", "all");
 
       // Add transaction elements after chart creation
-    const transactionGroup = svg.append("g").attr("class", "transactions");
+    const transactionGroup = chart.append("g").attr("class", "transactions");
     // Group transactions by date to handle overlapping
     const groupedTransactions = d3.group(parsedTransactions, d => +d.date);
     function convert(num){
